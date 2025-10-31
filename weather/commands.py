@@ -8,22 +8,33 @@ from .parser import create_parser
 from .api import get_weather
 from .cache import read_cache, write_cache
 
-# Инициализация colorama (для Windows и других систем)
+# Инициализация colorama 
 init(autoreset=True)
 
 
 def handle_command(args) -> None:
     """
     Обрабатывает команду пользователя: получает или кэширует погоду.
+    
+    Args:
+        args: Объект с аргументами командной строки, содержащий:
+            - city: название города
+            - lat: широта
+            - lon: долгота  
+            - refresh: флаг принудительного обновления кэша
     """
+    
+    # Извлекаем аргументы из командной строки
+    
     city = args.city
     lat = args.lat
     lon = args.lon
     refresh = args.refresh
 
-    # ✅ Проверяем ввод
+    # проверяем ввод
+    
     if not city and (lat is None or lon is None):
-        print(f"{Fore.RED}⚠ Ошибка: нужно указать либо название города, либо координаты (--lat и --lon){Style.RESET_ALL}")
+        print(f"{Fore.RED} Ошибка: нужно указать либо название города, либо координаты (--lat и --lon){Style.RESET_ALL}")
         return
 
     # Создаём ключ для кэша (по городу или координатам)
@@ -49,13 +60,29 @@ def handle_command(args) -> None:
 def print_weather(weather_data) -> None:
     """
     Форматированный и цветной вывод текущей погоды.
+    
+    Args:
+        weather_data (dict): Словарь с данными о погоде, содержащий:
+            - city: название города
+            - latitude, longitude: координаты
+            - current_weather: словарь с текущей погодой
     """
+    # Извлекаем данные о текущей погоде, если нет - используем пустой словарь
+    
     current = weather_data.get("current_weather", {})
+    
     print(f"{Fore.GREEN}Город/координаты:{Style.RESET_ALL} {weather_data.get('city', '—')}")
+    
     print(f"{Fore.GREEN}Координаты:{Style.RESET_ALL} {weather_data.get('latitude')}°, {weather_data.get('longitude')}°")
+    
     print(f"{Fore.YELLOW}────────────────────────────{Style.RESET_ALL}")
+    
     print(f"{Fore.BLUE}Температура:{Style.RESET_ALL} {current.get('temperature')} °C")
+    
     print(f"{Fore.BLUE}Скорость ветра:{Style.RESET_ALL} {current.get('windspeed')} км/ч")
+    
     print(f"{Fore.BLUE}Направление ветра:{Style.RESET_ALL} {current.get('winddirection')}°")
+    
     print(f"{Fore.MAGENTA}Время измерения:{Style.RESET_ALL} {current.get('time')}")
+    
     print(f"{Fore.YELLOW}────────────────────────────{Style.RESET_ALL}")
