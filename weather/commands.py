@@ -14,6 +14,10 @@ def handle_command(args) -> None:
     lat = args.lat
     lon = args.lon
     refresh = args.refresh
+    
+    if not city and (lat is None or lon is None):
+        print("Ошибка: нужно указать либо название города, либо координаты")
+        return
 
     cache_key = city or f"{lat},{lon}"
 
