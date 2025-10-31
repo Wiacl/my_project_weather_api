@@ -4,7 +4,9 @@
 """
 
 import requests
+
 from typing import Dict, Any, Optional
+
 from colorama import Fore, Style
 
 def get_coordinates(city: str) -> tuple[float, float]:
@@ -42,7 +44,11 @@ def get_coordinates(city: str) -> tuple[float, float]:
     return lat, lon
 
 
-def get_location_info(city=None, lat=None, lon=None):
+def get_location_info(
+    city: Optional[str] = None, 
+    lat: Optional[float] = None, 
+    lon: Optional[float] = None
+) -> Optional[Dict[str, Any]]:
     """
     Определяет координаты и название города.
     Если указан город — используется Open-Meteo Geocoding API.
@@ -119,7 +125,11 @@ def get_location_info(city=None, lat=None, lon=None):
 
 
 
-def get_weather(city=None, lat=None, lon=None):
+def get_weather(
+    city: Optional[str] = None, 
+    lat: Optional[float] = None, 
+    lon: Optional[float] = None
+) -> Dict[str, Any]:
     """
     Получает текущую погоду по названию города или координатам.
     
