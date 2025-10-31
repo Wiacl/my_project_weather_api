@@ -4,7 +4,6 @@
 """
 
 from colorama import Fore, Style, init
-from .parser import create_parser
 from .api import get_weather
 from .cache import read_cache, write_cache
 

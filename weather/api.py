@@ -67,7 +67,7 @@ def get_location_info(
     # Вариант 1: пользователь ввёл город — ищем координаты через Open-Meteo
     
     if city and not lat and not lon:
-        url = f"https://geocoding-api.open-meteo.com/v1/search?name={city}&language=ru&count=1"
+        url = f"https://geocoding-api.open-meteo.com/v1/search?name={city}&language=ru&count=1" 
         try:
             response = requests.get(url, timeout=10) #запрос к апи
             response.raise_for_status()         #смотрим статус запроса
