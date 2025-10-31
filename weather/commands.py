@@ -39,10 +39,8 @@ def handle_command(args) -> None:
 
     # Если кэша нет — запрашиваем из API
     try:
-        # ИСПРАВЛЕНИЕ: передаем правильные имена параметров
         data = get_weather(city=city, lat=lat, lon=lon)
         write_cache(cache_key, data)
-        print(f"{Fore.CYAN}🌤 Погода для {data.get('city', cache_key)}:{Style.RESET_ALL}")
         print_weather(data)
     except Exception as e:
         print(f"{Fore.RED}⚠ Ошибка: {e}{Style.RESET_ALL}")
@@ -53,7 +51,6 @@ def print_weather(weather_data) -> None:
     Форматированный и цветной вывод текущей погоды.
     """
     current = weather_data.get("current_weather", {})
-    print(f"{Fore.YELLOW}────────────────────────────{Style.RESET_ALL}")
     print(f"{Fore.GREEN}Город/координаты:{Style.RESET_ALL} {weather_data.get('city', '—')}")
     print(f"{Fore.GREEN}Координаты:{Style.RESET_ALL} {weather_data.get('latitude')}°, {weather_data.get('longitude')}°")
     print(f"{Fore.YELLOW}────────────────────────────{Style.RESET_ALL}")
