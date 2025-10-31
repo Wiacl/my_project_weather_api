@@ -1,45 +1,47 @@
+"""
+Основной модуль для обработки команд и вывода погоды.
+"""
+
 from .parser import create_parser
 from .api import get_weather
 from .cache import read_cache, write_cache
 
 def handle_command(args) -> None:
     """
-    Обрабатывает команду пользователя: получает погоду и выводит результат.
+    Обрабатывает команду пользователя: получает или кэширует погоду.
     """
     city = args.city
+    lat = args.lat
+    lon = args.lon
     refresh = args.refresh
-    hours = args.hours
 
-    # Пытаемся прочитать данные из кэша
+    cache_key = city or f"{lat},{lon}"
+
     if not refresh:
-        cached = read_cache(city)
+        cached = read_cache(cache_key)
         if cached:
-            print(f"✅ Погода для {city} (из кэша):")
+            print(f"✅ Погода для {cache_key} (из кэша):")
             print_weather(cached)
             return
 
-    # Иначе — запрос к API
     try:
-        weather = get_weather(city, hours)
-        write_cache(city, weather)
-        print(f"🌤 Погода для {city}:")
-        print_weather(weather)
+        data = get_weather(city=city, latitude=lat, longitude=lon)
+        write_cache(cache_key, data)
+        print(f"🌤 Погода для {cache_key}:")
+        print_weather(data)
     except Exception as e:
         print(f"⚠ Ошибка: {e}")
 
 
 def print_weather(weather_data) -> None:
     """
-    Форматирует и выводит прогноз в консоль.
-
-    Args:
-        weather_data (dict): Погодные данные.
+    Форматированный вывод текущей погоды.
     """
-    print(f"Город: {weather_data['city']}")
-    print(f"Координаты: {weather_data['latitude']}°, {weather_data['longitude']}°")
-    print("\nПочасовая температура (°C):")
-
-    for record in weather_data["data"]:
-        time = record["datetime"]
-        temp = record["temperature_2m"]
-        print(f"{time} — {temp}°C")
+    current = weather_data.get("current_weather", {})
+    print(f"Город: {weather_data.get('city', '—')}")
+    print(f"Координаты: {weather_data.get('latitude')}°, {weather_data.get('longitude')}°")
+    print("────────────────────────────")
+    print(f"Температура: {current.get('temperature')} °C")
+    print(f"Скорость ветра: {current.get('windspeed')} км/ч")
+    print(f"Направление ветра: {current.get('winddirection')}°")
+    print(f"Время измерения: {current.get('time')}")

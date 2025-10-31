@@ -1,13 +1,9 @@
 """
-Модуль для работы с Open-Meteo API с использованием официальной библиотеки openmeteo_requests.
+Модуль для работы с Open-Meteo API с помощью requests.
 """
 
-import pandas as pd
-import openmeteo_requests
-import requests_cache
-from retry_requests import retry
 import requests
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 def get_coordinates(city: str) -> tuple[float, float]:
     """
@@ -15,89 +11,58 @@ def get_coordinates(city: str) -> tuple[float, float]:
 
     Args:
         city (str): Название города.
-
     Returns:
-        tuple[float, float]: Кортеж (широта, долгота).
+        tuple[float, float]: (широта, долгота)
     """
-    geocode_url = f"https://geocoding-api.open-meteo.com/v1/search?name={city}&count=1&language=ru"
-    response = requests.get(geocode_url, timeout=10)
-    response.raise_for_status()
-    data = response.json()
+    url = f"https://geocoding-api.open-meteo.com/v1/search?name={city}&count=1&language=ru"
+    resp = requests.get(url, timeout=10)
+    resp.raise_for_status()
+    data = resp.json()
 
     if not data.get("results"):
         raise ValueError(f"Город '{city}' не найден.")
 
-    return data["results"][0]["latitude"], data["results"][0]["longitude"]
+    lat = data["results"][0]["latitude"]
+    lon = data["results"][0]["longitude"]
+    return lat, lon
 
 
-def get_weather_data(latitude: float, longitude: float, hours: int = 24) -> pd.DataFrame:
+def get_weather(city: Optional[str] = None,
+                latitude: Optional[float] = None,
+                longitude: Optional[float] = None) -> Dict[str, Any]:
     """
-    Получает почасовой прогноз температуры для указанных координат.
+    Возвращает текущую погоду по названию города или координатам.
 
     Args:
-        latitude (float): Широта.
-        longitude (float): Долгота.
-        hours (int): Количество часов прогноза (по умолчанию 24).
+        city (Optional[str]): Название города.
+        latitude (Optional[float]): Широта.
+        longitude (Optional[float]): Долгота.
 
     Returns:
-        pd.DataFrame: Таблица с температурой по часам.
-    """
-    # Настраиваем клиент Open-Meteo с кэшем и повторными попытками
-    cache_session = requests_cache.CachedSession('.cache', expire_after=3600)
-    retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
-    openmeteo = openmeteo_requests.Client(session=retry_session)
-
-    # Запрашиваем температуру по API
-    url = "https://api.open-meteo.com/v1/forecast"
-    params = {
-        "latitude": latitude,
-        "longitude": longitude,
-        "hourly": "temperature_2m",
-    }
-
-    try:
-        responses = openmeteo.weather_api(url, params=params)
-    except Exception as e:
-        raise ConnectionError(f"Ошибка при обращении к API Open-Meteo: {e}")
-
-    response = responses[0]
-    hourly = response.Hourly()
-    hourly_temperature = hourly.Variables(0).ValuesAsNumpy()
-
-    # Создаём DataFrame
-    hourly_data = {
-        "datetime": pd.date_range(
-            start=pd.to_datetime(hourly.Time(), unit="s", utc=True),
-            end=pd.to_datetime(hourly.TimeEnd(), unit="s", utc=True),
-            freq=pd.Timedelta(seconds=hourly.Interval()),
-            inclusive="left",
-        ),
-        "temperature_2m": hourly_temperature,
-    }
-
-    df = pd.DataFrame(hourly_data).head(hours)
-    return df
-
-
-def get_weather(city: str, hours: int = 24) -> Dict[str, Any]:
-    """
-    Получает прогноз погоды по названию города.
-
-    Args:
-        city (str): Название города.
-        hours (int): Количество часов для прогноза.
-
-    Returns:
-        dict: Словарь с погодными данными.
+        dict: JSON с погодными данными.
     """
     try:
-        lat, lon = get_coordinates(city)
-        weather_df = get_weather_data(lat, lon, hours)
-        return {
-            "city": city,
-            "latitude": lat,
-            "longitude": lon,
-            "data": weather_df.to_dict(orient="records"),
-        }
+        if latitude is not None and longitude is not None:
+            lat, lon = latitude, longitude
+            location_name = f"{lat}, {lon}"
+        elif city:
+            location_name = city
+            lat, lon = get_coordinates(city)
+        else:
+            raise ValueError("Нужно указать либо название города, либо координаты (--lat и --lon)")
+
+        url = (
+            "https://api.open-meteo.com/v1/forecast"
+            f"?latitude={lat}&longitude={lon}&current_weather=true"
+        )
+
+        resp = requests.get(url, timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
+        data["city"] = location_name
+        return data
+
+    except requests.RequestException as e:
+        raise ConnectionError(f"Ошибка соединения: {e}")
     except Exception as e:
-        raise RuntimeError(f"Не удалось получить данные для '{city}': {e}")
+        raise RuntimeError(f"Ошибка при получении данных: {e}")
