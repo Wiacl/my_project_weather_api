@@ -13,3 +13,7 @@ python main.py Лондон --refresh
 
 # Показать справку
 python main.py --help
+
+
+изменить ветер и добавить влажность 
+

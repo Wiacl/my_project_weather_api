@@ -1,3 +1,7 @@
+"""
+Основной модуль - точка входа в консольное приложение
+"""
+
 from weather import commands
 from weather.parser import create_parser
 

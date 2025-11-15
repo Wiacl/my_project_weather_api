@@ -1,3 +1,8 @@
+"""
+    Модуль парсер для данных 
+    
+"""
+
 import argparse
 
 def create_parser() -> argparse.ArgumentParser:
