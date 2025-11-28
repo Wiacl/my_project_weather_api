@@ -13,3 +13,4 @@ python main.py Лондон --refresh
 
 # Показать справку
 python main.py --help
+
