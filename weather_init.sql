@@ -1,4 +1,3 @@
--- weather_init.sql
 -- Создаем базу данных (если не существует)
 CREATE DATABASE weather_db;
 

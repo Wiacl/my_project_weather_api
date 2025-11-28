@@ -57,7 +57,7 @@ class WeatherDatabase:
         """
         
         try:
-            # ИСПРАВЛЕННАЯ СТРОКА: используем self.get_connection() вместо get_connection()
+            
             with self.get_connection() as conn:
                 with conn.cursor() as cursor:
                     cursor.execute(create_tables_sql)
