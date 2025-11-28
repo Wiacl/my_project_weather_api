@@ -23,4 +23,8 @@ def create_parser() -> argparse.ArgumentParser:
     
     parser.add_argument("--refresh", action="store_true", help="Игнорировать кэш и запросить новые данные")
     
+    parser.add_argument("--history", action="store_true", help="Показать историю запросов для города")
+    
+    parser.add_argument("--stats", action="store_true", help="Показать статистику погоды за последние 7 дней")
+    
     return parser
